@@ -251,3 +251,32 @@ def init_distributed_mode(args):
                                          world_size=args.world_size, rank=args.rank)
     torch.distributed.barrier()
     setup_for_distributed(args.rank == 0)
+    
+def freeze_policy_net(model):
+    for n, m in model.named_modules():
+        if "sort" in n:
+            print(f"==> No gradient to {n}.param")
+            for param in m.parameters():
+                param.requires_grad = False
+                if param.grad is not None:
+                    print(f"==> Setting gradient of {n}.param to None")
+                    param.grad = None
+
+
+def freeze_main_net(model):
+    for n, m in model.named_modules():
+        if "sort" not in n:
+            print(f"==> No gradient to {n}.param")
+            for param in m.parameters():
+                param.requires_grad = False
+                if param.grad is not None:
+                    print(f"==> Setting gradient of {n}.param to None")
+                    param.grad = None
+
+                    
+def unfreeze_model_weights(model):
+    print("=> UNFreezing model weights")
+    for n, m in model.named_modules():
+        print(f"==> Calculate gradient to {n}.param")
+        for param in m.parameters():
+            param.requires_grad = True
